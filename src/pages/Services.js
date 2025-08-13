@@ -65,27 +65,48 @@ const ServiceFormModal = ({ isOpen, onClose, service, type = 'general' }) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-             setFormData({
-         name: '',
-         email: '',
-         phone: '',
-         company: '',
-         service: service?.name || service?.title || '',
-         message: '',
-         budget: '',
-         timeline: ''
-       });
-      onClose();
-    }, 3000);
+    try {
+      // Submit to Formspree
+      const response = await fetch('https://formspree.io/f/mnnzwzqk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          service: service?.name || service?.title || '',
+          type: type,
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+        
+        // Reset form after 3 seconds
+        setTimeout(() => {
+          setIsSubmitted(false);
+          setFormData({
+            name: '',
+            email: '',
+            phone: '',
+            company: '',
+            service: service?.name || service?.title || '',
+            message: '',
+            budget: '',
+            timeline: ''
+          });
+          onClose();
+        }, 3000);
+      } else {
+        throw new Error('Form submission failed');
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      // Handle error - could show error message to user
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getModalTitle = () => {
@@ -295,7 +316,7 @@ const ServiceFormModal = ({ isOpen, onClose, service, type = 'general' }) => {
                 {isSubmitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Submitting...</span>
+                    <span>Submitting to Formspree...</span>
                   </>
                 ) : (
                   <>

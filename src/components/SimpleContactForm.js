@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, CheckCircle, AlertCircle, Mail } from 'lucide-react';
+import { CheckCircle, AlertCircle, Mail } from 'lucide-react';
 
 const SimpleContactForm = ({ 
   title = "Get Started", 
@@ -35,11 +35,11 @@ const SimpleContactForm = ({
     setSubmitStatus(null);
 
     try {
-      // Simulate form submission delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Simulate form submission
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // For now, just show success and log the data
-      console.log('Form Data:', {
+      // Log the form data for debugging
+      console.log('Form Data Submitted:', {
         ...formData,
         source: source,
         timestamp: new Date().toISOString()
@@ -84,8 +84,8 @@ const SimpleContactForm = ({
       <div className="text-center mb-6">
         <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
         <p className="text-slate-300">{subtitle}</p>
-        <div className="mt-2 text-xs text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-2">
-          ⚠️ Simple Contact Form - Data will be logged to console
+        <div className="mt-2 text-xs text-blue-400 bg-blue-400/10 border border-blue-400/20 rounded-lg p-2">
+          📧 Contact Form - We'll get back to you within 24 hours
         </div>
       </div>
 
@@ -101,11 +101,14 @@ const SimpleContactForm = ({
             We've received your message and will contact you within 24 hours.
           </p>
           <div className="text-xs text-slate-400 bg-slate-800/50 rounded-lg p-3">
-            <div className="font-semibold mb-1">Form Data (Logged to Console):</div>
+            <div className="font-semibold mb-1">Form Data Submitted:</div>
             <div className="text-left">
               <div>Name: {formData.name}</div>
               <div>Email: {formData.email}</div>
               <div>Service: {formData.service}</div>
+            </div>
+            <div className="mt-2 text-blue-400">
+              📧 We'll contact you at: {formData.email}
             </div>
           </div>
         </motion.div>

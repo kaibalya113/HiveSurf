@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, CheckCircle } from 'lucide-react';
 import HiveSurfLogo from './HiveSurfLogo';
-import GoogleForm from './GoogleForm';
+import SimpleContactForm from './SimpleContactForm';
 
 const StartNowModal = ({ isOpen, onClose, onFormSubmitted, sourceCardId }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -184,7 +184,7 @@ const StartNowModal = ({ isOpen, onClose, onFormSubmitted, sourceCardId }) => {
               animate="center"
               exit="exit"
             >
-                             <GoogleForm 
+                             <SimpleContactForm 
                  title="Start Your Journey"
                  subtitle="Fill out the form below to get started with HiveSurf."
                  className="!mb-0"

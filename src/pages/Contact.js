@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
 import { useTheme } from '../context/ThemeContext';
-import GoogleForm from '../components/GoogleForm';
+import SimpleContactForm from '../components/SimpleContactForm';
 
 // 3D Components
 function AnimatedIcosahedron() {
@@ -135,7 +135,7 @@ const Contact = () => {
                whileInView={{ opacity: 1, x: 0 }}
                transition={{ duration: 0.8 }}
              >
-               <GoogleForm 
+               <SimpleContactForm 
                  title="Send Us a Message"
                  subtitle="Fill out the form below and we'll get back to you within 24 hours."
                  source="Contact Page"

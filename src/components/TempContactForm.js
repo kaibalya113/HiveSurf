@@ -35,28 +35,35 @@ const TempContactForm = ({
     setSubmitStatus(null);
 
     try {
-      // Simulate form submission delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // For now, just show success and log the data
-      console.log('Form Data:', {
-        ...formData,
-        source: source,
-        timestamp: new Date().toISOString()
+      // Submit to Formspree
+      const response = await fetch('https://formspree.io/f/mnnzwzqk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          source: source,
+          timestamp: new Date().toISOString()
+        })
       });
-      
-      setSubmitStatus('success');
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        company: '',
-        service: '',
-        message: ''
-      });
-      
-      if (onSuccess) {
-        onSuccess();
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          company: '',
+          service: '',
+          message: ''
+        });
+        
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        throw new Error('Form submission failed');
       }
     } catch (error) {
       console.error('Form submission error:', error);
@@ -84,9 +91,9 @@ const TempContactForm = ({
       <div className="text-center mb-6">
         <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
         <p className="text-slate-300">{subtitle}</p>
-        <div className="mt-2 text-xs text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-2">
-          ⚠️ Demo Mode - Form data will be logged to console
-        </div>
+        {/* <div className="mt-2 text-xs text-blue-400 bg-blue-400/10 border border-blue-400/20 rounded-lg p-2">
+          📧 Contact Form - Powered by Formspree
+        </div> */}
       </div>
 
       {submitStatus === 'success' ? (
@@ -101,11 +108,14 @@ const TempContactForm = ({
             We've received your message and will contact you within 24 hours.
           </p>
           <div className="text-xs text-slate-400 bg-slate-800/50 rounded-lg p-3">
-            <div className="font-semibold mb-1">Form Data (Logged to Console):</div>
+            <div className="font-semibold mb-1">Form Data Submitted:</div>
             <div className="text-left">
               <div>Name: {formData.name}</div>
               <div>Email: {formData.email}</div>
               <div>Service: {formData.service}</div>
+            </div>
+            <div className="mt-2 text-blue-400">
+              📧 We'll contact you at: {formData.email}
             </div>
           </div>
         </motion.div>
@@ -225,12 +235,12 @@ const TempContactForm = ({
             {isSubmitting ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Submitting...</span>
+                <span>Submitting to Formspree...</span>
               </>
             ) : (
               <>
                 <Mail size={20} />
-                <span>Send Message (Demo)</span>
+                <span>Send Message</span>
               </>
             )}
           </motion.button>
