@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
@@ -47,8 +47,56 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// Custom hook to handle clean URLs
+function useCleanURLs() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Function to update browser URL to appear clean
+    const updateBrowserURL = () => {
+      const path = location.pathname;
+      if (path && path !== '/') {
+        // Create a clean URL without the hash
+        const cleanURL = `https://kaibalya113.github.io/HiveSurf${path}`;
+        
+        // Update the browser's address bar to show clean URL
+        window.history.replaceState(null, '', cleanURL);
+        
+        // Update page title
+        const pageTitles = {
+          '/home': 'HiveSurf - Home',
+          '/about': 'HiveSurf - About',
+          '/services': 'HiveSurf - Services',
+          '/contact': 'HiveSurf - Contact'
+        };
+        
+        if (pageTitles[path]) {
+          document.title = pageTitles[path];
+        }
+      }
+    };
+
+    // Update URL after routing is complete
+    const timer = setTimeout(updateBrowserURL, 150);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
+  // Custom navigation function
+  const navigateTo = (path) => {
+    navigate(path);
+    
+    // Immediately update the browser URL
+    const cleanURL = `https://kaibalya113.github.io/HiveSurf${path}`;
+    window.history.replaceState(null, '', cleanURL);
+  };
+
+  return { navigateTo, currentPath: location.pathname };
+}
+
 function AnimatedRoutes() {
   const location = useLocation();
+  const { navigateTo } = useCleanURLs();
   
   return (
     <AnimatePresence mode="wait">
@@ -100,6 +148,44 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [isAppReady]);
+
+  // Global effect to continuously update URL bar to appear clean
+  useEffect(() => {
+    if (!isLoading && isAppReady) {
+      const updateURLBar = () => {
+        // Get the current hash
+        const hash = window.location.hash;
+        if (hash && hash !== '#/') {
+          // Extract the path from hash
+          const path = hash.replace('#', '');
+          if (path && path !== '/') {
+            // Create clean URL
+            const cleanURL = `https://kaibalya113.github.io/HiveSurf${path}`;
+            // Update browser URL without hash
+            window.history.replaceState(null, '', cleanURL);
+          }
+        }
+      };
+
+      // Update immediately
+      updateURLBar();
+
+      // Set up interval to continuously update
+      const interval = setInterval(updateURLBar, 100);
+
+      // Also listen for hash changes
+      const handleHashChange = () => {
+        setTimeout(updateURLBar, 50);
+      };
+
+      window.addEventListener('hashchange', handleHashChange);
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('hashchange', handleHashChange);
+      };
+    }
+  }, [isLoading, isAppReady]);
 
   console.log('App: Render state - isLoading:', isLoading, 'isAppReady:', isAppReady);
 
