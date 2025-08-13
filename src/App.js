@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -11,7 +11,7 @@ import Footer from './components/Footer';
 function App() {
   return (
     <ThemeProvider>
-      <Router basename="/HiveSurf">
+      <Router>
         <div className="App min-h-screen relative">
           {/* Content */}
           <div className="relative z-10">

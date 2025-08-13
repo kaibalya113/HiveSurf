@@ -24,7 +24,9 @@
     "deploy": "gh-pages -d build",
     "build": "craco build",
     "test": "craco test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "clean": "if exist build rmdir /s /q build",
+    "rebuild": "npm run clean && npm run build"
   },
   "eslintConfig": {
     "extends": [
