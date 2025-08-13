@@ -19,29 +19,51 @@ function AnimatedSphere() {
 function LoadingScreen() {
   const [progress, setProgress] = useState(0);
   const [loadingText, setLoadingText] = useState('Initializing...');
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    const loadingSteps = [
-      { text: 'Loading assets...', progress: 25 },
-      { text: 'Preparing components...', progress: 50 },
-      { text: 'Setting up routing...', progress: 75 },
-      { text: 'Almost ready...', progress: 90 },
-      { text: 'Launching HiveSurf...', progress: 100 }
-    ];
+    try {
+      const loadingSteps = [
+        { text: 'Loading assets...', progress: 25 },
+        { text: 'Preparing components...', progress: 50 },
+        { text: 'Setting up routing...', progress: 75 },
+        { text: 'Almost ready...', progress: 90 },
+        { text: 'Launching HiveSurf...', progress: 100 }
+      ];
 
-    let currentStep = 0;
-    const interval = setInterval(() => {
-      if (currentStep < loadingSteps.length) {
-        setLoadingText(loadingSteps[currentStep].text);
-        setProgress(loadingSteps[currentStep].progress);
-        currentStep++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 400);
+      let currentStep = 0;
+      const interval = setInterval(() => {
+        if (currentStep < loadingSteps.length) {
+          setLoadingText(loadingSteps[currentStep].text);
+          setProgress(loadingSteps[currentStep].progress);
+          currentStep++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 400);
 
-    return () => clearInterval(interval);
+      return () => clearInterval(interval);
+    } catch (error) {
+      console.error('LoadingScreen error:', error);
+      setHasError(true);
+    }
   }, []);
+
+  // Fallback loading screen if there's an error
+  if (hasError) {
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center z-50">
+        <div className="text-center text-white">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">HiveSurf</h1>
+          <p className="text-lg text-slate-300 mb-8">Riding the wave of innovation</p>
+          <div className="w-64 h-2 bg-slate-700 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full animate-pulse" />
+          </div>
+          <p className="text-sm text-slate-400 mt-4">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center z-50">
