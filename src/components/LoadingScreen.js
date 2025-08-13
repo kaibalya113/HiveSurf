@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sphere } from '@react-three/drei';
@@ -17,6 +17,32 @@ function AnimatedSphere() {
 }
 
 function LoadingScreen() {
+  const [progress, setProgress] = useState(0);
+  const [loadingText, setLoadingText] = useState('Initializing...');
+
+  useEffect(() => {
+    const loadingSteps = [
+      { text: 'Loading assets...', progress: 25 },
+      { text: 'Preparing components...', progress: 50 },
+      { text: 'Setting up routing...', progress: 75 },
+      { text: 'Almost ready...', progress: 90 },
+      { text: 'Launching HiveSurf...', progress: 100 }
+    ];
+
+    let currentStep = 0;
+    const interval = setInterval(() => {
+      if (currentStep < loadingSteps.length) {
+        setLoadingText(loadingSteps[currentStep].text);
+        setProgress(loadingSteps[currentStep].progress);
+        currentStep++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center z-50">
       <div className="relative">
@@ -52,18 +78,25 @@ function LoadingScreen() {
             Riding the wave of innovation
           </motion.div>
           
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: "100%" }}
-            transition={{ duration: 2, ease: "easeInOut" }}
-            className="h-1 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full max-w-xs mx-auto"
-          />
+          {/* Progress Bar */}
+          <div className="mb-4">
+            <div className="text-sm text-slate-400 mb-2">{loadingText}</div>
+            <div className="w-64 h-2 bg-slate-700 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="h-full bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full"
+              />
+            </div>
+            <div className="text-xs text-slate-500 mt-1">{progress}%</div>
+          </div>
           
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 1 }}
-            className="mt-4 text-sm text-slate-400"
+            className="text-sm text-slate-400"
           >
             Loading amazing experiences...
           </motion.div>
