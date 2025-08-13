@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/HiveSurf/static/css/main.dba6a01f.css",
-    "main.js": "/HiveSurf/static/js/main.6479b4a0.js",
-    "index.html": "/HiveSurf/index.html",
-    "main.dba6a01f.css.map": "/HiveSurf/static/css/main.dba6a01f.css.map",
-    "main.6479b4a0.js.map": "/HiveSurf/static/js/main.6479b4a0.js.map"
+    "main.css": "/static/css/main.83e90847.css",
+    "main.js": "/static/js/main.b2185b24.js",
+    "index.html": "/index.html",
+    "main.83e90847.css.map": "/static/css/main.83e90847.css.map",
+    "main.b2185b24.js.map": "/static/js/main.b2185b24.js.map"
   },
   "entrypoints": [
-    "static/css/main.dba6a01f.css",
-    "static/js/main.6479b4a0.js"
+    "static/css/main.83e90847.css",
+    "static/js/main.b2185b24.js"
   ]
 }
