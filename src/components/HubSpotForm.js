@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Send, CheckCircle, AlertCircle, Mail } from 'lucide-react';
 import './HubSpotForm.css';
-import SimpleContactForm from './SimpleContactForm';
 
 const HubSpotForm = ({ 
   title = "Get Started", 
@@ -11,227 +10,91 @@ const HubSpotForm = ({
   onSuccess,
   className = ""
 }) => {
-  const formRef = useRef(null);
-  const [isFormLoaded, setIsFormLoaded] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    service: '',
+    message: ''
+  });
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
-  const [loadError, setLoadError] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
 
-  const loadHubSpotScript = () => {
-    return new Promise((resolve, reject) => {
-      // Check if script already exists
-      const existingScript = document.querySelector('script[src*="hsforms.net"]');
-      if (existingScript) {
-        resolve();
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = 'https://js-na2.hsforms.net/forms/embed/243516569.js';
-      script.defer = true;
-      script.onload = () => {
-        console.log('HubSpot script loaded successfully');
-        resolve();
-      };
-      script.onerror = () => {
-        console.error('Failed to load HubSpot script');
-        reject(new Error('Failed to load HubSpot script'));
-      };
-      document.head.appendChild(script);
-    });
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  const createHubSpotForm = () => {
-    return new Promise((resolve, reject) => {
-      if (!window.hbspt) {
-        reject(new Error('HubSpot not available'));
-        return;
-      }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus(null);
 
-      try {
-        window.hbspt.forms.create({
-          region: 'na2',
-          portalId: '243516569',
-          formId: '7a88f6de-c616-4a7e-a938-46f981035858',
-          target: formRef.current,
-          onFormSubmitted: (form) => {
-            console.log('Form submitted successfully');
-            setSubmitStatus('success');
-            setIsSubmitting(false);
-            if (onSuccess) {
-              onSuccess();
-            }
-          },
-          onFormReady: (form) => {
-            console.log('Form ready, applying custom styling');
-            setTimeout(() => {
-              customizeFormStyling();
-            }, 100);
-            resolve();
-          },
-          onFormError: (form) => {
-            console.error('Form error:', form);
-            setSubmitStatus('error');
-            setIsSubmitting(false);
-            reject(new Error('Form submission failed'));
-          }
-        });
-      } catch (error) {
-        console.error('Error creating HubSpot form:', error);
-        reject(error);
-      }
-    });
-  };
-
-  const initializeForm = async () => {
     try {
-      setLoadError(false);
-      await loadHubSpotScript();
-      
-      // Wait a bit for the script to initialize
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      await createHubSpotForm();
-      setIsFormLoaded(true);
+      // Submit to Formspree
+      const response = await fetch('https://formspree.io/f/mnnzwzqk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          source: source,
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          company: '',
+          service: '',
+          message: ''
+        });
+        
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        throw new Error('Form submission failed');
+      }
     } catch (error) {
-      console.error('Form initialization error:', error);
-      setLoadError(true);
-      setIsFormLoaded(false);
+      console.error('Form submission error:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-
-  useEffect(() => {
-    if (formRef.current) {
-      initializeForm();
-    }
-  }, []);
-
-  const handleRetry = () => {
-    setRetryCount(prev => prev + 1);
-    setLoadError(false);
-    setIsFormLoaded(false);
-    
-    // Clear the form container
-    if (formRef.current) {
-      formRef.current.innerHTML = '';
-    }
-    
-    // Retry initialization
-    setTimeout(() => {
-      initializeForm();
-    }, 500);
-  };
-
-  const customizeFormStyling = () => {
-    const form = formRef.current;
-    if (!form) return;
-
-    // Apply custom styling to form elements
-    const inputs = form.querySelectorAll('input, select, textarea');
-    inputs.forEach(input => {
-      input.style.cssText = `
-        width: 100%;
-        padding: 12px 16px;
-        background: rgba(30, 41, 59, 0.5);
-        border: 1px solid rgb(51, 65, 85);
-        border-radius: 8px;
-        color: white;
-        font-size: 14px;
-        transition: all 0.2s ease;
-        outline: none;
-      `;
-
-      input.addEventListener('focus', () => {
-        input.style.borderColor = '#0ea5e9';
-        input.style.boxShadow = '0 0 0 2px rgba(14, 165, 233, 0.2)';
-      });
-
-      input.addEventListener('blur', () => {
-        input.style.borderColor = 'rgb(51, 65, 85)';
-        input.style.boxShadow = 'none';
-      });
-    });
-
-    // Style labels
-    const labels = form.querySelectorAll('label');
-    labels.forEach(label => {
-      label.style.cssText = `
-        color: rgb(203, 213, 225);
-        font-size: 14px;
-        font-weight: 500;
-        margin-bottom: 8px;
-        display: block;
-      `;
-    });
-
-    // Style submit button
-    const submitBtn = form.querySelector('input[type="submit"]');
-    if (submitBtn) {
-      submitBtn.style.cssText = `
-        width: 100%;
-        padding: 12px 24px;
-        background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        margin-top: 16px;
-      `;
-
-      submitBtn.addEventListener('mouseenter', () => {
-        submitBtn.style.transform = 'translateY(-1px)';
-        submitBtn.style.boxShadow = '0 4px 12px rgba(14, 165, 233, 0.3)';
-      });
-
-      submitBtn.addEventListener('mouseleave', () => {
-        submitBtn.style.transform = 'translateY(0)';
-        submitBtn.style.boxShadow = 'none';
-      });
-
-      submitBtn.addEventListener('click', () => {
-        setIsSubmitting(true);
-      });
-    }
-
-    // Style form container
-    const formElement = form.querySelector('form');
-    if (formElement) {
-      formElement.style.cssText = `
-        background: rgba(15, 23, 42, 0.5);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(51, 65, 85, 0.5);
-        border-radius: 12px;
-        padding: 24px;
-        margin: 0;
-      `;
-    }
-
-    // Style field groups
-    const fieldGroups = form.querySelectorAll('.hs-form-field');
-    fieldGroups.forEach(group => {
-      group.style.cssText = `
-        margin-bottom: 20px;
-      `;
-    });
-
-    // Style required field indicators
-    const requiredFields = form.querySelectorAll('.hs-form-required');
-    requiredFields.forEach(field => {
-      field.style.color = '#ef4444';
-    });
   };
 
   const inputClasses = "w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200";
+
+  const services = [
+    'Digital Marketing',
+    'SEO',
+    'Social Media Marketing', 
+    'Content Marketing',
+    'PPC Advertising',
+    'Web Design',
+    'Branding',
+    'Other'
+  ];
 
   return (
     <div className={`hubspot-form-container bg-slate-900/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50 ${className}`}>
       <div className="text-center mb-6">
         <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
         <p className="text-slate-300">{subtitle}</p>
+        <div className="mt-2 text-xs text-blue-400 bg-blue-400/10 border border-blue-400/20 rounded-lg p-2">
+          📧 Contact Form - Powered by Formspree
+        </div>
       </div>
 
       {submitStatus === 'success' ? (
@@ -255,7 +118,7 @@ const HubSpotForm = ({
               className="flex items-center space-x-2 text-blue-400 bg-blue-400/10 border border-blue-400/20 rounded-lg p-3"
             >
               <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-              <span>Submitting your form...</span>
+              <span>Submitting to Formspree...</span>
             </motion.div>
           )}
 
@@ -270,73 +133,121 @@ const HubSpotForm = ({
             </motion.div>
           )}
 
-          {/* HubSpot Form Container */}
-          <div 
-            ref={formRef}
-            className="min-h-[400px] flex items-center justify-center"
-          >
-            {!isFormLoaded && !loadError && (
-              <div className="text-center">
-                <div className="w-8 h-8 border-2 border-primary-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-slate-400">Loading form...</p>
-                <p className="text-xs text-slate-500 mt-2">This may take a few seconds</p>
+          {/* Formspree Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  className={inputClasses}
+                  placeholder="John Doe"
+                />
               </div>
-            )}
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  className={inputClasses}
+                  placeholder="john@example.com"
+                />
+              </div>
+            </div>
 
-            {/* Error state */}
-            {loadError && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-8"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className={inputClasses}
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Company
+                </label>
+                <input
+                  type="text"
+                  name="company"
+                  value={formData.company}
+                  onChange={handleInputChange}
+                  className={inputClasses}
+                  placeholder="Your Company"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Service Interested In
+              </label>
+              <select
+                name="service"
+                value={formData.service}
+                onChange={handleInputChange}
+                className={inputClasses}
               >
-                <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-                <h4 className="text-lg font-semibold text-white mb-2">Form Loading Issue</h4>
-                <p className="text-slate-300 mb-4">
-                  {retryCount > 0 
-                    ? `Attempt ${retryCount + 1}: The form is having trouble loading.`
-                    : "The form is having trouble loading."
-                  }
-                </p>
-                <div className="space-y-3">
-                  <button
-                    onClick={handleRetry}
-                    className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center space-x-2 mx-auto"
-                  >
-                    <RefreshCw size={16} />
-                    <span>Try Again</span>
-                  </button>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="px-6 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
-                  >
-                    Refresh Page
-                  </button>
-                </div>
-                {retryCount > 2 && (
-                  <p className="text-xs text-slate-400 mt-4">
-                    If the problem persists, please contact us directly at info@hivesurf.com
-                  </p>
-                )}
-              </motion.div>
-            )}
-          </div>
+                <option value="">Select a service</option>
+                {services.map(service => (
+                  <option key={service} value={service}>{service}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Fallback form if HubSpot fails to load after multiple retries */}
-          {loadError && retryCount > 3 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <SimpleContactForm 
-                title={title}
-                subtitle={subtitle}
-                source={source}
-                onSuccess={onSuccess}
-                className={className}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Message
+              </label>
+              <textarea
+                name="message"
+                value={formData.message}
+                onChange={handleInputChange}
+                rows={4}
+                className={inputClasses}
+                placeholder="Tell us about your project or requirements..."
               />
-            </motion.div>
-          )}
+            </div>
+
+            <motion.button
+              type="submit"
+              disabled={isSubmitting}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg hover:shadow-primary-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Submitting to Formspree...</span>
+                </>
+              ) : (
+                <>
+                  <Mail size={20} />
+                  <span>Send Message</span>
+                </>
+              )}
+            </motion.button>
+          </form>
         </div>
       )}
     </div>

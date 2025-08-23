@@ -35,28 +35,35 @@ const SimpleContactForm = ({
     setSubmitStatus(null);
 
     try {
-      // Simulate form submission
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Log the form data for debugging
-      console.log('Form Data Submitted:', {
-        ...formData,
-        source: source,
-        timestamp: new Date().toISOString()
+      // Submit to Formspree
+      const response = await fetch('https://formspree.io/f/mnnzwzqk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          source: source,
+          timestamp: new Date().toISOString()
+        })
       });
-      
-      setSubmitStatus('success');
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        company: '',
-        service: '',
-        message: ''
-      });
-      
-      if (onSuccess) {
-        onSuccess();
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          company: '',
+          service: '',
+          message: ''
+        });
+        
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        throw new Error('Form submission failed');
       }
     } catch (error) {
       console.error('Form submission error:', error);
@@ -85,7 +92,7 @@ const SimpleContactForm = ({
         <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
         <p className="text-slate-300">{subtitle}</p>
         <div className="mt-2 text-xs text-blue-400 bg-blue-400/10 border border-blue-400/20 rounded-lg p-2">
-          📧 Contact Form - We'll get back to you within 24 hours
+          📧 Contact Form - Powered by Formspree
         </div>
       </div>
 
@@ -228,7 +235,7 @@ const SimpleContactForm = ({
             {isSubmitting ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Submitting...</span>
+                <span>Submitting to Formspree...</span>
               </>
             ) : (
               <>
